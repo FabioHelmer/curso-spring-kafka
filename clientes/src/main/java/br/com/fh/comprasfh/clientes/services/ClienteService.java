@@ -5,6 +5,7 @@ import br.com.fh.comprasfh.clientes.dtos.ClienteRequestDTO;
 import br.com.fh.comprasfh.clientes.dtos.ClienteResponseDTO;
 import br.com.fh.comprasfh.clientes.model.Cliente;
 import br.com.fh.comprasfh.clientes.repositories.ClienteRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class ClienteService {
 
     public ClienteResponseDTO buscarPorId(Long codigo) {
         Cliente cliente = repository.findById(codigo)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
 
         return toResponseDTO(cliente);
     }
