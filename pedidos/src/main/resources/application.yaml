@@ -23,7 +23,7 @@ spring:
 server:
   port: 8080
 
-icompras:
+fhcompras:
   pedidos:
     clients:
       produtos:
