@@ -4,6 +4,7 @@ package br.com.fh.comprasfh.clientes.controllers;
 import br.com.fh.comprasfh.clientes.dtos.ClienteRequestDTO;
 import br.com.fh.comprasfh.clientes.dtos.ClienteResponseDTO;
 import br.com.fh.comprasfh.clientes.services.ClienteService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,12 @@ public class ClienteController {
 
     @GetMapping("/{codigo}")
     public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long codigo) {
-        return ResponseEntity.ok(clienteService.buscarPorId(codigo));
+        try {
+            return ResponseEntity.ok(clienteService.buscarPorId(codigo));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+
     }
 
     @PostMapping

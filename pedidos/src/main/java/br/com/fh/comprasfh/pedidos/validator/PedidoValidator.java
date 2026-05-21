@@ -4,6 +4,7 @@ import br.com.fh.comprasfh.pedidos.client.ClientesClient;
 import br.com.fh.comprasfh.pedidos.client.ProdutosClient;
 import br.com.fh.comprasfh.pedidos.client.representation.ClienteRepresentation;
 import br.com.fh.comprasfh.pedidos.client.representation.ProdutoRepresentation;
+import br.com.fh.comprasfh.pedidos.exceptions.ValidatorException;
 import br.com.fh.comprasfh.pedidos.model.Pedido;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,17 +30,16 @@ public class PedidoValidator {
 
     private void validarCliente(Pedido pedido) {
 
+        Long codigoCliente = pedido.getCodigoCliente();
         try {
-            ResponseEntity<ClienteRepresentation> response = clientesClient.buscarPorId(pedido.getCodigoCliente());
+            ResponseEntity<ClienteRepresentation> response = clientesClient.buscarPorId(codigoCliente);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new EntityNotFoundException("Cliente não encontrado: " + pedido.getCodigoCliente());
+                throw new EntityNotFoundException("Cliente não encontrado: " + codigoCliente);
             }
-            log.info("Cliente encontrado: {}", pedido.getCodigoCliente());
+            log.info("Cliente encontrado: {}", codigoCliente);
         } catch (FeignException.NotFound notFound) {
-            log.error("Cliente não encontrado: {}", pedido.getCodigoCliente());
+            throw new ValidatorException("codigoCliente", "Cliente de codigo " + codigoCliente + " não encontrado.");
         }
-
-
     }
 
     private void validarProdutos(Pedido pedido) {
@@ -48,12 +48,12 @@ public class PedidoValidator {
                 log.info("obtendo informações de produto:{}", itemPedido.getCodigoProduto());
                 ResponseEntity<ProdutoRepresentation> response = produtosClient.obterProdutoPorCodigo(itemPedido.getCodigoProduto());
                 if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                    throw new EntityNotFoundException("Produto não encontrado: " + itemPedido.getCodigoProduto());
+                    throw new ValidatorException("codigoProduto", "Produto não encontrado: " + itemPedido.getCodigoProduto());
                 }
             });
 
         } catch (FeignException.NotFound notFound) {
-            log.error("Produto não encontrado");
+            throw new ValidatorException("codigoProduto", "Produto não encontrado.");
         }
 
     }

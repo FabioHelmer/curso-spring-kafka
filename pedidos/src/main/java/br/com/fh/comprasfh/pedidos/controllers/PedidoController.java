@@ -1,8 +1,10 @@
 package br.com.fh.comprasfh.pedidos.controllers;
 
+import br.com.fh.comprasfh.pedidos.dtos.ErroReponse;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoRequestDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoResponseDTO;
 import br.com.fh.comprasfh.pedidos.enums.StatusPedido;
+import br.com.fh.comprasfh.pedidos.exceptions.ValidatorException;
 import br.com.fh.comprasfh.pedidos.services.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +21,13 @@ public class PedidoController {
     private final PedidoService pedidoService;
 
     @PostMapping
-    public ResponseEntity<PedidoResponseDTO> criar(@RequestBody @Valid PedidoRequestDTO dto) {
-        return ResponseEntity.status(201).body(pedidoService.criar(dto));
+    public ResponseEntity<Object> criar(@RequestBody @Valid PedidoRequestDTO dto) {
+        try{
+            return ResponseEntity.status(201).body(pedidoService.criar(dto));
+        }catch (ValidatorException e){
+            var erro = new ErroReponse("Erro de Validação", e.getField(), e.getMessage());
+            return ResponseEntity.badRequest().body(erro);
+        }
     }
 
     @GetMapping
