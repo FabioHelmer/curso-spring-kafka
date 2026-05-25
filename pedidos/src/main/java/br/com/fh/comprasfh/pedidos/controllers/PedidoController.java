@@ -45,10 +45,4 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.listarPorCliente(codigoCliente));
     }
 
-    @PatchMapping("/{codigo}/status")
-    public ResponseEntity<PedidoResponseDTO> atualizarStatus(
-            @PathVariable Long codigo,
-            @RequestParam StatusPedido status) {
-        return ResponseEntity.ok(pedidoService.atualizarStatus(codigo, status));
-    }
 }

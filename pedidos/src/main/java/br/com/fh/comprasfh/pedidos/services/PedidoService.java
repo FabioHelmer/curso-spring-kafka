@@ -3,6 +3,7 @@ package br.com.fh.comprasfh.pedidos.services;
 import br.com.fh.comprasfh.pedidos.client.ServicoBancarioClient;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoRequestDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoResponseDTO;
+import br.com.fh.comprasfh.pedidos.dtos.RecebimentoCallbackPagamentoDTO;
 import br.com.fh.comprasfh.pedidos.enums.StatusPedido;
 import br.com.fh.comprasfh.pedidos.mappers.ItemPedidoMapper;
 import br.com.fh.comprasfh.pedidos.mappers.PedidoMapper;
@@ -113,14 +114,18 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponseDTO atualizarStatus(Long codigo, StatusPedido novoStatus) {
+    public PedidoResponseDTO atualizarStatus(RecebimentoCallbackPagamentoDTO body) {
 
-        var pedido = pedidoRepository.findById(codigo)
+        var pedido = pedidoRepository.findByCodigoAndChavePagamento(body.codigo(), body.chavePagamento())
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
 
-        pedido.setStatus(novoStatus);
-        return pedidoMapper.toResponseDTO(
-                pedidoRepository.save(pedido)
-        );
+        if(body.status()){
+            pedido.setStatus(StatusPedido.PAGO);
+        }else{
+            pedido.setStatus(StatusPedido.ERRO_PAGAMENTO);
+            pedido.setObservacoes(body.observacoes());
+        }
+
+        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
 }
