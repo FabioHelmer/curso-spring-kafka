@@ -1,6 +1,7 @@
 package br.com.fh.comprasfh.pedidos.controllers;
 
 import br.com.fh.comprasfh.pedidos.dtos.ErroReponse;
+import br.com.fh.comprasfh.pedidos.dtos.NovoPagamentoRequestDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoRequestDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoResponseDTO;
 import br.com.fh.comprasfh.pedidos.enums.StatusPedido;
@@ -43,6 +44,20 @@ public class PedidoController {
     @GetMapping("/cliente/{codigoCliente}")
     public ResponseEntity<List<PedidoResponseDTO>> listarPorCliente(@PathVariable Long codigoCliente) {
         return ResponseEntity.ok(pedidoService.listarPorCliente(codigoCliente));
+    }
+
+    @PostMapping("/pagamentos/{codigoPedido}")
+    public ResponseEntity<PedidoResponseDTO> adicionarNovoPagamento(
+            @PathVariable Long codigoPedido,
+            @RequestBody NovoPagamentoRequestDTO request) {
+
+        PedidoResponseDTO pedido = pedidoService.adicionarNovoPagamento(
+                codigoPedido,
+                request.dadosCartao(),
+                request.tipoPagamento()
+        );
+
+        return ResponseEntity.ok(pedido);
     }
 
 }

@@ -1,5 +1,6 @@
 package br.com.fh.comprasfh.pedidos.controllers;
 
+import br.com.fh.comprasfh.pedidos.dtos.ErroResponseDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoResponseDTO;
 import br.com.fh.comprasfh.pedidos.dtos.RecebimentoCallbackPagamentoDTO;
 import br.com.fh.comprasfh.pedidos.services.PedidoService;
@@ -15,15 +16,12 @@ public class RecebidmentoCallbackPagamentoController {
     private final PedidoService pedidoService;
 
     @PostMapping
-    public ResponseEntity<Object> atualizarStatusPagamento(@RequestBody RecebimentoCallbackPagamentoDTO body,
-                                                           @RequestHeader(required = true, name = "apiKey") String apiKey){
+    public ResponseEntity<PedidoResponseDTO> atualizarStatusPagamento(
+            @RequestBody RecebimentoCallbackPagamentoDTO body,
+            @RequestHeader(name = "apiKey") String apiKey) {
 
-        try{
-            PedidoResponseDTO pedidoResponseDTO = pedidoService.atualizarStatus(body);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest();
-        }
+        PedidoResponseDTO pedidoResponseDTO = pedidoService.atualizarStatus(body);
+        return ResponseEntity.ok(pedidoResponseDTO);
     }
 
 

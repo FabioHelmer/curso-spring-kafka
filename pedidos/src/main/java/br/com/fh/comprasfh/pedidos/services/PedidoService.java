@@ -1,12 +1,16 @@
 package br.com.fh.comprasfh.pedidos.services;
 
 import br.com.fh.comprasfh.pedidos.client.ServicoBancarioClient;
+import br.com.fh.comprasfh.pedidos.dtos.DadosPagamentosDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoRequestDTO;
 import br.com.fh.comprasfh.pedidos.dtos.PedidoResponseDTO;
 import br.com.fh.comprasfh.pedidos.dtos.RecebimentoCallbackPagamentoDTO;
 import br.com.fh.comprasfh.pedidos.enums.StatusPedido;
+import br.com.fh.comprasfh.pedidos.enums.TipoPagamento;
+import br.com.fh.comprasfh.pedidos.exceptions.PedidoException;
 import br.com.fh.comprasfh.pedidos.mappers.ItemPedidoMapper;
 import br.com.fh.comprasfh.pedidos.mappers.PedidoMapper;
+import br.com.fh.comprasfh.pedidos.model.DadoPagamento;
 import br.com.fh.comprasfh.pedidos.model.Pedido;
 import br.com.fh.comprasfh.pedidos.repositories.ItemPedidoRepository;
 import br.com.fh.comprasfh.pedidos.repositories.PedidoRepository;
@@ -116,16 +120,45 @@ public class PedidoService {
     @Transactional
     public PedidoResponseDTO atualizarStatus(RecebimentoCallbackPagamentoDTO body) {
 
-        var pedido = pedidoRepository.findByCodigoAndChavePagamento(body.codigo(), body.chavePagamento())
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
+        var pedido = pedidoRepository
+                .findByCodigoAndChavePagamento(body.codigo(), body.chavePagamento())
+                .orElseThrow(() -> new PedidoException(
+                        "Pedido não encontrado",
+                        String.format(
+                                "Não foi localizado um pedido com código '%s' e chave de pagamento '%s'.",
+                                body.codigo(),
+                                body.chavePagamento()
+                        )));
 
-        if(body.status()){
+        if (body.status()) {
             pedido.setStatus(StatusPedido.PAGO);
-        }else{
+        } else {
             pedido.setStatus(StatusPedido.ERRO_PAGAMENTO);
             pedido.setObservacoes(body.observacoes());
         }
 
         return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
+
+    @Transactional
+    public PedidoResponseDTO adicionarNovoPagamento(Long codigoPedido,
+                                                    String dadosCartao,
+                                                    TipoPagamento tipoPagamento) {
+
+        Pedido pedido = pedidoRepository.findById(codigoPedido)
+                .orElseThrow(() -> new PedidoException(
+                        "Pedido não encontrado",
+                        "Não foi encontrado um pedido com o código " + codigoPedido + "."
+                ));
+
+        pedido.setDadosPagamentos(new DadoPagamento(dadosCartao, tipoPagamento));
+        pedido.setStatus(StatusPedido.REALIZADO);
+        pedido.setObservacoes("Novo pagamento realizado, aguardando processamento.");
+
+        solicitarPagamento(pedido);
+
+        return pedidoMapper.toResponseDTO(pedido);
+    }
+
+
 }
